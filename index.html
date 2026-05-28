@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1115">
+<title>Gym Exercise Library</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#191c23; --card2:#21252e; --line:#2c313c;
+    --text:#e9edf3; --dim:#9aa3b2; --accent:#5ad1a0; --accent2:#7aa2ff;
+    --run:#ffb454; --tap:48px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{font-size:17px;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;
+    padding:0 0 env(safe-area-inset-bottom);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:18px 14px 60px;}
+  header h1{font-size:1.5rem; margin:.2em 0 .15em;}
+  header p{color:var(--dim); margin:.2em 0 1em; font-size:.95rem;}
+
+  /* generic card */
+  details.card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    margin:0 0 12px; overflow:hidden;
+  }
+  details.card>summary{
+    list-style:none; cursor:pointer; padding:16px 16px; font-weight:600;
+    font-size:1.08rem; display:flex; align-items:center; gap:10px;
+    min-height:var(--tap);
+  }
+  details.card>summary::-webkit-details-marker{display:none;}
+  details.card>summary .chev{
+    margin-left:auto; color:var(--dim); transition:transform .18s ease; font-size:1.1rem;
+  }
+  details.card[open]>summary .chev{transform:rotate(90deg);}
+  details.card>summary .count{
+    color:var(--dim); font-size:.8rem; font-weight:500;
+    background:var(--card2); padding:2px 8px; border-radius:999px;
+  }
+  .group-body{padding:0 12px 12px;}
+
+  /* loading reference */
+  .ref summary{color:var(--accent2);}
+  .ref table{width:100%; border-collapse:collapse; font-size:.86rem; margin-top:6px;}
+  .ref th,.ref td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .ref th{color:var(--dim); font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em;}
+  .ref td:first-child{font-weight:600; color:var(--text); white-space:nowrap;}
+  .note{font-size:.85rem; color:var(--dim); margin:12px 4px 2px;}
+  .note strong{color:var(--text);}
+
+  /* filter bar */
+  .filter{
+    position:sticky; top:0; z-index:5; margin:0 -14px 14px; padding:10px 14px;
+    background:rgba(15,17,21,.92); backdrop-filter:saturate(140%) blur(8px);
+    border-bottom:1px solid var(--line);
+    display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .filter button{
+    flex:0 0 auto; min-height:40px; padding:8px 14px; border-radius:999px;
+    border:1px solid var(--line); background:var(--card); color:var(--dim);
+    font-size:.9rem; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  .filter button.active{background:var(--accent); color:#06241a; border-color:var(--accent);}
+
+  /* exercise */
+  .ex{
+    background:var(--card2); border:1px solid var(--line); border-radius:11px;
+    padding:12px 13px; margin:10px 0;
+  }
+  .ex.hidden{display:none;}
+  .ex h3{margin:0 0 4px; font-size:1.02rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ex .run{font-size:.95rem;}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin:2px 0 8px;}
+  .tag{
+    font-size:.72rem; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
+    padding:3px 8px; border-radius:6px; background:var(--card); color:var(--dim); border:1px solid var(--line);
+  }
+  .tag.machine{color:#7aa2ff;} .tag.free{color:#5ad1a0;}
+  .tag.bodyweight{color:#ffd166;} .tag.cable{color:#e08cff;}
+  .ex .cue{margin:4px 0; font-size:.92rem;}
+  .ex .watch{margin:6px 0 0; font-size:.86rem; color:var(--dim);}
+  .ex .watch strong{color:var(--run);}
+  .group-empty{color:var(--dim); font-size:.88rem; padding:6px 4px; display:none;}
+
+  .legend{font-size:.8rem; color:var(--dim); margin:2px 4px 16px;}
+  footer{color:var(--dim); font-size:.78rem; text-align:center; margin-top:26px; line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🏋️ Gym Exercise Library</h1>
+    <p>No plan, just inspiration. Tap a muscle group, filter by what kit you fancy, and pick a few. 🏃 = worth keeping in for running.</p>
+  </header>
+
+  <!-- LOADING REFERENCE -->
+  <details class="card ref" open>
+    <summary>📊 How to load it (sets &amp; reps by goal)<span class="chev">›</span></summary>
+    <div class="group-body">
+      <table>
+        <thead>
+          <tr><th>Goal</th><th>Reps</th><th>Load</th><th>Sets</th><th>Rest</th><th>Effort</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Strength</td><td>1–5</td><td>~85%+ 1RM</td><td>3–5</td><td>2–5 min</td><td>Hard, keep 1–2 reps in reserve</td></tr>
+          <tr><td>Hypertrophy</td><td>6–12</td><td>~67–80%</td><td>3–4</td><td>60–90 s</td><td>Near failure (0–2 left)</td></tr>
+          <tr><td>Power</td><td>3–5</td><td>~50–70%</td><td>3–5</td><td>Full (2–3 min)</td><td>Move the weight fast</td></tr>
+          <tr><td>Endurance / stability</td><td>15+</td><td>&lt;60% or bodyweight</td><td>2–3</td><td>30–60 s</td><td>Controlled, build burn</td></tr>
+        </tbody>
+      </table>
+      <p class="note"><strong>RIR (reps in reserve):</strong> for most growth work, stop 1–2 reps short of failure on the last set — clean reps beat grinding.</p>
+      <p class="note"><strong>Runner note:</strong> in race build, keep heavy lower-body lifting away from key run/long-run days, and lean toward single-leg + stability work. Off-season is the time to push strength loads.</p>
+    </div>
+  </details>
+
+  <!-- FILTER BAR -->
+  <div class="filter" id="filter">
+    <button class="active" data-f="all">All</button>
+    <button data-f="machine">Machine</button>
+    <button data-f="free">Free weights</button>
+    <button data-f="bodyweight">Bodyweight</button>
+    <button data-f="cable">Cable</button>
+  </div>
+  <p class="legend">Tags: <span class="tag machine">Machine</span> <span class="tag free">Free</span> <span class="tag bodyweight">Bodyweight</span> <span class="tag cable">Cable</span></p>
+
+  <!-- GROUPS -->
+  <div id="groups">
+
+    <!-- GLUTES & HIPS -->
+    <details class="card group">
+      <summary>🍑 Glutes &amp; Hips <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free">
+          <h3>Hip Thrust <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Bar/pad on hips, drive through heels, squeeze glutes hard at the top, ribs down.</p>
+          <p class="watch"><strong>Watch out:</strong> overarching the lower back at lockout instead of finishing with the glutes.</p>
+        </div>
+        <div class="ex" data-equip="cable bodyweight">
+          <h3>Cable / Band Glute Kickback <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Hinge slightly, push the foot back and up, pause at full extension.</p>
+          <p class="watch"><strong>Watch out:</strong> swinging from the lower back — keep the move at the hip.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight cable">
+          <h3>Lateral Band Walk <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag cable">Band</span></div>
+          <p class="cue">Band above knees, half-squat, step wide and slow, keep tension the whole time.</p>
+          <p class="watch"><strong>Watch out:</strong> knees caving inward — keep them tracking over the toes.</p>
+        </div>
+        <div class="ex" data-equip="machine">
+          <h3>Hip Abduction Machine <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag machine">Machine</span></div>
+          <p class="cue">Push knees out against the pads, slow on the way back in.</p>
+          <p class="watch"><strong>Watch out:</strong> leaning the torso forward to cheat the weight.</p>
+        </div>
+        <div class="ex" data-equip="free bodyweight">
+          <h3>Bulgarian Split Squat <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Rear foot on bench, drop straight down, weight through the front heel.</p>
+          <p class="watch"><strong>Watch out:</strong> front knee drifting past the toes / heel lifting.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight">
+          <h3>Single-Leg Glute Bridge <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">One foot planted, lift hips level, hold a beat at the top.</p>
+          <p class="watch"><strong>Watch out:</strong> hips dropping or twisting — keep them square.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- QUADS -->
+    <details class="card group">
+      <summary>🦵 Quads <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free bodyweight">
+          <h3>Back / Goblet Squat <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Brace, sit between the hips, knees track over toes, drive up evenly.</p>
+          <p class="watch"><strong>Watch out:</strong> heels lifting or chest collapsing forward.</p>
+        </div>
+        <div class="ex" data-equip="machine">
+          <h3>Leg Press <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag machine">Machine</span></div>
+          <p class="cue">Feet mid-platform, lower until ~90°, press without locking out hard.</p>
+          <p class="watch"><strong>Watch out:</strong> letting the lower back round off the pad at the bottom.</p>
+        </div>
+        <div class="ex" data-equip="machine">
+          <h3>Leg Extension</h3>
+          <div class="tags"><span class="tag machine">Machine</span></div>
+          <p class="cue">Squeeze quads to straighten, control the lowering, full range.</p>
+          <p class="watch"><strong>Watch out:</strong> swinging/kicking the weight up with momentum.</p>
+        </div>
+        <div class="ex" data-equip="free bodyweight">
+          <h3>Walking Lunge <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Long step, drop the back knee, push through the front heel to stand.</p>
+          <p class="watch"><strong>Watch out:</strong> short choppy steps that load the knee instead of the leg.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight free">
+          <h3>Step-Up <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag free">Free</span></div>
+          <p class="cue">Whole foot on a knee-height box, drive up through that leg, no push-off.</p>
+          <p class="watch"><strong>Watch out:</strong> pushing off the bottom foot instead of working the top leg.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- HAMSTRINGS -->
+    <details class="card group">
+      <summary>🔙 Hamstrings <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free">
+          <h3>Romanian Deadlift (RDL) <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Soft knees, push hips back, bar close to legs, feel the stretch, stand tall.</p>
+          <p class="watch"><strong>Watch out:</strong> rounding the back or squatting it instead of hinging.</p>
+        </div>
+        <div class="ex" data-equip="machine">
+          <h3>Seated / Lying Leg Curl <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag machine">Machine</span></div>
+          <p class="cue">Curl the pad in fully, squeeze, resist slowly on the way back.</p>
+          <p class="watch"><strong>Watch out:</strong> hips lifting off the seat to gain leverage.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight">
+          <h3>Nordic Curl (assisted) <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Anchor ankles, lower as slowly as you can control, hands ready to catch.</p>
+          <p class="watch"><strong>Watch out:</strong> bending at the hips — keep a straight line knee to shoulder.</p>
+        </div>
+        <div class="ex" data-equip="free bodyweight">
+          <h3>Single-Leg RDL <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Hinge over one leg, back leg extends behind, hips stay square.</p>
+          <p class="watch"><strong>Watch out:</strong> hip opening out to the side — keep it level to the floor.</p>
+        </div>
+        <div class="ex" data-equip="cable bodyweight">
+          <h3>Cable / Band Pull-Through</h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag bodyweight">Band</span></div>
+          <p class="cue">Face away, rope between legs, hinge back then snap hips through.</p>
+          <p class="watch"><strong>Watch out:</strong> using the arms to lift instead of the hips.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- CALVES & LOWER LEG -->
+    <details class="card group">
+      <summary>🦶 Calves &amp; Lower Leg <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="machine free bodyweight">
+          <h3>Standing Calf Raise <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag machine">Machine</span><span class="tag free">Free</span><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Rise high onto the balls of the feet, pause, lower under control for a stretch.</p>
+          <p class="watch"><strong>Watch out:</strong> bouncing through partial reps with no top squeeze.</p>
+        </div>
+        <div class="ex" data-equip="machine free">
+          <h3>Seated Calf Raise <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag machine">Machine</span><span class="tag free">Free</span></div>
+          <p class="cue">Knees bent loads the soleus — slow tempo, full range each rep.</p>
+          <p class="watch"><strong>Watch out:</strong> rushing; this one rewards slow, deliberate reps.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight">
+          <h3>Single-Leg Calf Raise <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">One leg on a step, full drop and full rise, light fingers on a wall for balance.</p>
+          <p class="watch"><strong>Watch out:</strong> wobbling at the ankle — control side-to-side too.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight free">
+          <h3>Tibialis Raise (toes up) <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag free">Free</span></div>
+          <p class="cue">Heels on floor/edge, pull toes up toward shins, squeeze the front of the shin.</p>
+          <p class="watch"><strong>Watch out:</strong> skipping it — strong tibs help with shin niggles for runners.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- CORE & TRUNK -->
+    <details class="card group">
+      <summary>🎯 Core &amp; Trunk <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="bodyweight">
+          <h3>Plank <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Straight line head to heels, squeeze glutes and brace, breathe.</p>
+          <p class="watch"><strong>Watch out:</strong> hips sagging or piking up — quality time beats long sloppy holds.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight free">
+          <h3>Side Plank <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag free">Free</span></div>
+          <p class="cue">Stack hips and shoulders, lift hips high, hold tall.</p>
+          <p class="watch"><strong>Watch out:</strong> hips drifting forward or sinking toward the floor.</p>
+        </div>
+        <div class="ex" data-equip="cable">
+          <h3>Pallof Press <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag cable">Cable</span></div>
+          <p class="cue">Cable to the side, press straight out and resist the pull, stay square.</p>
+          <p class="watch"><strong>Watch out:</strong> letting the torso rotate toward the machine.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight">
+          <h3>Dead Bug <span class="run">🏃</span></h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Lower back flat, extend opposite arm and leg slowly, then switch.</p>
+          <p class="watch"><strong>Watch out:</strong> lower back arching off the floor as the limbs extend.</p>
+        </div>
+        <div class="ex" data-equip="cable machine">
+          <h3>Cable / Machine Crunch</h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Curl the ribs toward the hips, controlled, no neck yanking.</p>
+          <p class="watch"><strong>Watch out:</strong> pulling with the hip flexors instead of the abs.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight free">
+          <h3>Hanging Knee Raise</h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag free">Free</span></div>
+          <p class="cue">Hang from the bar, raise knees with control, no swing.</p>
+          <p class="watch"><strong>Watch out:</strong> using momentum to kip the legs up.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- BACK -->
+    <details class="card group">
+      <summary>🪝 Back <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="bodyweight machine">
+          <h3>Pull-Up / Assisted Pull-Up</h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Start from a dead hang, pull elbows down and back, chin over the bar.</p>
+          <p class="watch"><strong>Watch out:</strong> half reps — get the full stretch at the bottom.</p>
+        </div>
+        <div class="ex" data-equip="machine cable">
+          <h3>Lat Pulldown</h3>
+          <div class="tags"><span class="tag machine">Machine</span><span class="tag cable">Cable</span></div>
+          <p class="cue">Pull the bar to the upper chest, drive elbows down, chest proud.</p>
+          <p class="watch"><strong>Watch out:</strong> leaning way back and rowing it instead of pulling down.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Bent-Over Row</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Hinge ~45°, flat back, row to the lower ribs, squeeze the shoulder blades.</p>
+          <p class="watch"><strong>Watch out:</strong> rounding the back or standing up to heave the weight.</p>
+        </div>
+        <div class="ex" data-equip="cable machine">
+          <h3>Seated Cable Row</h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Tall chest, pull to the belly, shoulder blades together, slow return.</p>
+          <p class="watch"><strong>Watch out:</strong> rocking back and forth from the hips.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Single-Arm Dumbbell Row</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Hand and knee on bench, row the dumbbell to the hip, no twist.</p>
+          <p class="watch"><strong>Watch out:</strong> rotating the torso to lift heavier than you can control.</p>
+        </div>
+        <div class="ex" data-equip="cable bodyweight">
+          <h3>Face Pull</h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag bodyweight">Band</span></div>
+          <p class="cue">Rope to face height, pull to the forehead, thumbs back, squeeze rear delts.</p>
+          <p class="watch"><strong>Watch out:</strong> shrugging the traps up instead of pulling back.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- CHEST -->
+    <details class="card group">
+      <summary>💪 Chest <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free">
+          <h3>Barbell / Dumbbell Bench Press</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Shoulder blades pinched, lower to mid-chest, press up and slightly back.</p>
+          <p class="watch"><strong>Watch out:</strong> flaring elbows out to 90° — keep them ~45°.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Incline Dumbbell Press</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Bench ~30°, press up and in, control the stretch at the bottom.</p>
+          <p class="watch"><strong>Watch out:</strong> bench too steep — it turns into a shoulder press.</p>
+        </div>
+        <div class="ex" data-equip="machine">
+          <h3>Chest Press Machine</h3>
+          <div class="tags"><span class="tag machine">Machine</span></div>
+          <p class="cue">Handles at mid-chest, press smoothly, don't slam the lockout.</p>
+          <p class="watch"><strong>Watch out:</strong> shoulders rolling forward off the pad.</p>
+        </div>
+        <div class="ex" data-equip="cable machine">
+          <h3>Cable / Pec Deck Fly</h3>
+          <div class="tags"><span class="tag cable">Cable</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Soft elbows, bring hands together in a hugging arc, squeeze the chest.</p>
+          <p class="watch"><strong>Watch out:</strong> bending the elbows into a press instead of a fly.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight">
+          <h3>Push-Up</h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span></div>
+          <p class="cue">Body in a straight line, lower chest to floor, elbows ~45°.</p>
+          <p class="watch"><strong>Watch out:</strong> hips sagging or only going halfway down.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- SHOULDERS -->
+    <details class="card group">
+      <summary>🤷 Shoulders <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free machine">
+          <h3>Overhead / Shoulder Press</h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Brace core, press straight overhead, ribs down, finish with biceps by ears.</p>
+          <p class="watch"><strong>Watch out:</strong> arching the lower back to push the weight up.</p>
+        </div>
+        <div class="ex" data-equip="free cable">
+          <h3>Lateral Raise</h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag cable">Cable</span></div>
+          <p class="cue">Slight bend in elbows, raise to shoulder height, lead with the elbows.</p>
+          <p class="watch"><strong>Watch out:</strong> swinging up with momentum or shrugging the traps.</p>
+        </div>
+        <div class="ex" data-equip="free cable">
+          <h3>Rear Delt Fly</h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag cable">Cable</span></div>
+          <p class="cue">Hinge forward, raise arms out to the sides, squeeze the rear delts.</p>
+          <p class="watch"><strong>Watch out:</strong> using the lower back to swing rather than the rear delts.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Front Raise</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Raise the weight to shoulder height in front, controlled down.</p>
+          <p class="watch"><strong>Watch out:</strong> leaning back and bouncing the weight up.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- ARMS -->
+    <details class="card group">
+      <summary>💥 Arms <span class="count"></span><span class="chev">›</span></summary>
+      <div class="group-body">
+        <div class="ex" data-equip="free cable">
+          <h3>Biceps Curl (DB / Bar / Cable)</h3>
+          <div class="tags"><span class="tag free">Free</span><span class="tag cable">Cable</span></div>
+          <p class="cue">Elbows pinned to sides, curl up, squeeze, lower slowly.</p>
+          <p class="watch"><strong>Watch out:</strong> swinging the elbows forward and using the back.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Hammer Curl</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Neutral grip (thumbs up), curl up keeping wrists straight.</p>
+          <p class="watch"><strong>Watch out:</strong> rushing the lowering phase.</p>
+        </div>
+        <div class="ex" data-equip="cable">
+          <h3>Triceps Pushdown</h3>
+          <div class="tags"><span class="tag cable">Cable</span></div>
+          <p class="cue">Elbows tucked, push down to full extension, squeeze the triceps.</p>
+          <p class="watch"><strong>Watch out:</strong> elbows flaring out and drifting forward.</p>
+        </div>
+        <div class="ex" data-equip="free">
+          <h3>Overhead Triceps Extension</h3>
+          <div class="tags"><span class="tag free">Free</span></div>
+          <p class="cue">Weight behind the head, extend overhead, keep elbows pointing up.</p>
+          <p class="watch"><strong>Watch out:</strong> elbows flaring wide and losing the stretch.</p>
+        </div>
+        <div class="ex" data-equip="bodyweight machine">
+          <h3>Dips / Assisted Dips</h3>
+          <div class="tags"><span class="tag bodyweight">Bodyweight</span><span class="tag machine">Machine</span></div>
+          <p class="cue">Lower under control, elbows back for triceps, press to lockout.</p>
+          <p class="watch"><strong>Watch out:</strong> shrugging up into the shoulders at the bottom.</p>
+        </div>
+      </div>
+    </details>
+
+  </div>
+
+  <footer>
+    Built for quick gym inspiration · general training guidance, not medical advice.<br>
+    Tip: in Safari, tap Share → <strong>Add to Home Screen</strong> to keep it one tap away (works offline).
+  </footer>
+</div>
+
+<script>
+(function(){
+  var filterBar = document.getElementById('filter');
+  var buttons = filterBar.querySelectorAll('button');
+  var groups = document.querySelectorAll('#groups .group');
+
+  function updateCounts(){
+    groups.forEach(function(g){
+      var exs = g.querySelectorAll('.ex');
+      var visible = 0;
+      exs.forEach(function(e){ if(!e.classList.contains('hidden')) visible++; });
+      var countEl = g.querySelector('.count');
+      if(countEl) countEl.textContent = visible;
+      // hide a whole group if nothing matches the filter
+      g.style.display = visible === 0 ? 'none' : '';
+    });
+  }
+
+  function applyFilter(f){
+    document.querySelectorAll('.ex').forEach(function(e){
+      var equip = (e.getAttribute('data-equip') || '').split(/\s+/);
+      var show = (f === 'all') || equip.indexOf(f) !== -1;
+      e.classList.toggle('hidden', !show);
+    });
+    updateCounts();
+  }
+
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      buttons.forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      applyFilter(b.getAttribute('data-f'));
+    });
+  });
+
+  // initial counts (all visible)
+  applyFilter('all');
+})();
+</script>
+</body>
+</html>

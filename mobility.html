@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#141210">
+<title>The Field Manual — Mobility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141210; --panel:#1d1a16; --panel2:#26221c; --line:#352f27;
+    --paper:#f3ede1; --dim:#9b9286; --faint:#6b6459;
+    --lime:#cdfb45; --lime-dim:#9bbf2f; --clay:#ff7a52; --sky:#7fb7ff; --gold:#ffd166; --orchid:#d79bff;
+    --mob:#7fded0; /* mobility accent — calm teal, distinct from train's lime energy */
+    --tap:48px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{font-size:17px; -webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--ink); color:var(--paper);
+    font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.5; letter-spacing:.005em;
+    padding:0 0 env(safe-area-inset-bottom); overflow-x:hidden;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative; z-index:1; max-width:680px; margin:0 auto; padding:0 16px 70px;}
+
+  header.mast{padding:30px 2px 14px;}
+  .kicker{font-family:"Space Mono",monospace; font-size:.72rem; letter-spacing:.32em; text-transform:uppercase; color:var(--mob); margin:0 0 10px;}
+  .mast h1{font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase; font-size:clamp(3.1rem,18vw,5.2rem); line-height:.84; letter-spacing:.01em; margin:0;}
+  .mast h1 em{font-style:normal; color:var(--mob); display:block;}
+  .mast .sub{color:var(--dim); font-size:.95rem; max-width:36ch; margin:16px 0 0;}
+
+  .toggle{display:flex; gap:4px; margin:22px 0 6px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:999px;}
+  .toggle a{flex:1; text-align:center; text-decoration:none; min-height:44px; line-height:44px; font-family:"Space Mono",monospace; font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); border-radius:999px; transition:.2s;}
+  .toggle a.on{background:var(--mob); color:#06231e; font-weight:700;}
+
+  .ruler{display:flex; align-items:baseline; gap:12px; margin:34px 2px 14px;}
+  .ruler .no{font-family:"Anton",sans-serif; font-size:1.3rem; color:var(--mob); letter-spacing:.02em;}
+  .ruler h2{font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase; font-size:1.55rem; letter-spacing:.02em; margin:0;}
+  .ruler .line{height:1px; flex:1; background:linear-gradient(90deg,var(--line),transparent);}
+
+  .callout{border:1px dashed var(--line); border-radius:14px; padding:14px 16px; margin:14px 0 0; background:rgba(127,222,208,.04); font-size:.88rem; color:var(--dim);}
+  .callout b{color:var(--paper);}
+  .callout .deco{font-family:"Space Mono",monospace; color:var(--mob); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; display:block; margin-bottom:6px;}
+
+  .filter{position:sticky; top:0; z-index:9; margin:26px -16px 4px; padding:12px 16px; background:linear-gradient(180deg,var(--ink) 70%,transparent); display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .filter::-webkit-scrollbar{display:none;}
+  .filter button{flex:0 0 auto; min-height:42px; padding:8px 16px; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--dim); font-family:"Space Mono",monospace; font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700; cursor:pointer; transition:.18s;}
+  .filter button.active{background:var(--mob); color:#06231e; border-color:var(--mob);}
+
+  details.group{background:var(--panel); border:1px solid var(--line); border-radius:16px; margin:0 0 12px; overflow:hidden; opacity:0; transform:translateY(10px); animation:rise .5s ease forwards;}
+  @keyframes rise{to{opacity:1; transform:none;}}
+  details.group>summary{list-style:none; cursor:pointer; padding:16px; min-height:var(--tap); display:flex; align-items:center; gap:12px; font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase; letter-spacing:.03em; font-size:1.2rem;}
+  details.group>summary::-webkit-details-marker{display:none;}
+  details.group>summary .ic{font-size:1.25rem;}
+  details.group>summary .count{margin-left:auto; font-family:"Space Mono",monospace; font-size:.72rem; font-weight:700; color:var(--mob); background:var(--panel2); padding:3px 9px; border-radius:999px; letter-spacing:.05em;}
+  details.group>summary .chev{color:var(--faint); transition:transform .2s ease; font-family:"Space Mono",monospace;}
+  details.group[open]>summary .chev{transform:rotate(90deg); color:var(--mob);}
+  details.group[open]>summary{border-bottom:1px solid var(--line);}
+  .gbody{padding:6px 12px 12px;}
+
+  .ex{padding:14px 4px; border-bottom:1px solid var(--line);}
+  .ex:last-child{border-bottom:0;}
+  .ex.hidden{display:none;}
+  .ex h4{margin:0 0 7px; font-size:1.06rem; font-weight:700; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ex h4 .run{font-size:.95rem;}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 9px;}
+  .tag{font-family:"Space Mono",monospace; font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:6px; background:var(--panel2); color:var(--dim); border:1px solid var(--line);}
+  .tag.none{color:var(--gold); border-color:rgba(255,209,102,.3);}
+  .tag.roller{color:var(--mob); border-color:rgba(127,222,208,.3);}
+  .tag.ball{color:var(--orchid); border-color:rgba(215,155,255,.3);}
+  .tag.wall{color:var(--sky); border-color:rgba(127,183,255,.3);}
+  .line-item{display:flex; gap:9px; margin:5px 0; font-size:.9rem;}
+  .line-item .lab{font-family:"Space Mono",monospace; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); flex:0 0 42px; padding-top:3px;}
+  .line-item.hold .lab{color:var(--mob);}
+  .line-item.watch .lab{color:var(--clay);}
+  .line-item .txt{flex:1; color:var(--paper);}
+  .line-item.watch .txt{color:var(--dim);}
+
+  footer{color:var(--faint); font-size:.78rem; text-align:center; margin-top:38px; line-height:1.6; font-family:"Space Mono",monospace; letter-spacing:.03em;}
+  footer b{color:var(--dim);}
+  footer a{color:var(--mob);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <p class="kicker">Gym Field Manual · No.02</p>
+    <h1>Breathe<br>&amp; <em>Open.</em></h1>
+    <p class="sub">Mobility, stretch &amp; release — yoga-rooted. For warm-ups, cooldowns, or the days the body just needs space. <b style="color:var(--mob)">🏃</b> marks the runner-keepers.</p>
+  </header>
+
+  <nav class="toggle">
+    <a href="gym-exercises.html">Train</a>
+    <a class="on" href="mobility.html">Mobility</a>
+  </nav>
+
+  <div class="callout">
+    <span class="deco">// how to use</span>
+    <b>Before a session:</b> move dynamically — flow in and out of positions, 5–8 slow reps. <b>After / on rest days:</b> hold longer (5–10 slow breaths) and sink into the stretch. <b>Foam rolling:</b> 30–60s per spot, breathe out as you settle on a tender point — pressure should feel like a "good ache", never sharp.
+  </div>
+
+  <div class="filter" id="filter">
+    <button class="active" data-f="all">All</button>
+    <button data-f="none">No kit</button>
+    <button data-f="roller">Foam roller</button>
+    <button data-f="ball">Massage ball</button>
+    <button data-f="wall">Wall / block</button>
+  </div>
+
+  <div id="groups">
+
+    <!-- 01 HIPS & FLEXORS -->
+    <div class="ruler"><span class="no">01</span><h2>Hips · Flexors</h2><span class="line"></span></div>
+    <details class="group" open>
+      <summary><span class="ic">🌀</span> Hips &amp; Flexors <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="none">
+          <h4>Couch Stretch (hip flexor) <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span><span class="tag wall">Wall</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Kneel facing away from a wall/couch, shin of the back leg up against it, front foot planted ahead in a lunge.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Tuck the pelvis under and squeeze the back glute to drive the stretch into the front of the hip/thigh.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–8 breaths each side. Brilliant antidote to a desk and to mile after mile.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Letting the lower back arch — the pelvic tuck is what makes it work.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Pigeon Pose <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">From all fours, bring one shin forward across the mat, back leg long behind, hips square.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Stay upright for a lighter version, or walk the hands forward and fold over the front shin to deepen.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">8–10 slow breaths each side — targets deep glute/piriformis.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Collapsing onto one hip; prop the front-leg hip on a block/cushion if it floats.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>90/90 Hip Switch <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Sit with the front leg bent at 90° in front, back leg bent at 90° out to the side.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Sit tall, lean gently over the front shin; to mobilise, rotate the knees over to switch to the other side and repeat.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5 breaths each side, or flow 8–10 slow switches.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Rounding the back — keep the chest lifted.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Deep Squat / Malasana <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Feet a little wider than hips, toes slightly out, sink the hips down toward the heels.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Elbows inside the knees, press gently out, lift the chest. Rock side to side to find space in the hips and ankles.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–10 breaths. Hold a doorframe/rack if you tip backward.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Heels lifting — sit them down, or rest them on a small wedge.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Figure-4 (supine) <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">On your back, cross one ankle over the opposite thigh to make a "4".</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Thread the hands behind the bottom thigh and gently draw it toward the chest.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">6–8 breaths each side — gentle glute/piriformis release.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Pushing into pain; the crossed knee should ease open, not be forced.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 02 HAMSTRINGS & POSTERIOR -->
+    <div class="ruler"><span class="no">02</span><h2>Hamstrings · Posterior</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🌿</span> Hamstrings &amp; Posterior <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="none">
+          <h4>Standing / Seated Forward Fold <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Standing feet hip-width (or seated legs long), hinge from the hips, soft knees.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Let the head and arms hang heavy, lengthen the back of the legs with each exhale. Micro-bend the knees to protect the lower back.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">8–10 breaths, gently nodding "yes/no" to release the neck.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Yanking down with a rounded, locked spine — fold from the hips.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Downward Dog <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">From all fours, tuck the toes and lift the hips up and back into an inverted V.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Press the chest toward the thighs, lengthen the spine; bend one knee then the other to "pedal" the calves and hamstrings.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–8 breaths, or pedal it out dynamically.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Rounding the upper back to force the heels down — a long spine matters more than flat heels.</span></div>
+        </div>
+        <div class="ex" data-equip="wall none">
+          <h4>Supine Hamstring Stretch (strap/wall) <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span><span class="tag wall">Strap</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">On your back, loop a strap/towel around one foot (or use a doorway), other leg long on the floor.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Raise the strapped leg toward vertical with a soft knee, draw gently until you feel the stretch.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">6–8 breaths each side. Lower-back-friendly way to target hamstrings.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">The bottom leg/lower back lifting off the floor.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 03 SPINE & T-SPINE -->
+    <div class="ruler"><span class="no">03</span><h2>Spine · T-Spine</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🦎</span> Spine &amp; T-Spine <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="none">
+          <h4>Cat–Cow <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">On all fours, wrists under shoulders, knees under hips, spine neutral.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Inhale: drop the belly, lift the chest and tail (cow). Exhale: round the spine, tuck the chin and tail (cat). Flow with the breath.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">8–10 slow cycles — the best wake-up for the whole spine.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Rushing — let each breath drive the movement.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Thread the Needle</h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">From all fours, reach one arm up to the ceiling, opening the chest.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Thread that arm under the body, lowering the shoulder and temple toward the mat, then rewind and open back up.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5 breaths threaded each side — gentle upper-back rotation.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Crushing the neck — let the shoulder, not the head, take the weight.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Open Book (T-spine rotation)</h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Lie on one side, knees stacked and bent 90°, arms stretched out together in front.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Keeping the knees down, sweep the top arm up and over to the other side, following the hand with the eyes; return.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">6–8 slow sweeps each side, exhaling into the open position.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Knees popping up — keep them anchored so rotation comes from the upper back.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Cobra / Sphinx</h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Lie face down; sphinx = forearms down, elbows under shoulders. Cobra = hands by the ribs.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Gently lift the chest, lengthen the front of the body, keep the shoulders down away from the ears.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–8 breaths — a counter to all-day flexion and hunching.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Cranking the neck back; keep it long, gaze slightly down.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 04 SHOULDERS & CHEST -->
+    <div class="ruler"><span class="no">04</span><h2>Shoulders · Chest</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🕊️</span> Shoulders &amp; Chest <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="wall none">
+          <h4>Doorway Pec Stretch</h4>
+          <div class="tags"><span class="tag wall">Doorway</span><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Forearm on a doorframe, elbow around shoulder height, step the same-side foot through.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Gently turn the chest away to open the front of the shoulder and pec. Adjust elbow height to hit different fibres.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–8 breaths each side.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Over-rotating into pain — it should feel like a broad opening, not a pinch.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Shoulder CARs (controlled circles)</h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Stand tall, one arm by the side, ribs down, core lightly braced.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Trace the largest slow circle you can with the arm — forward, up, back, down — exploring the full range with control.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">3–5 slow circles each direction, each side.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">The body twisting to cheat range — keep the torso still, move only the shoulder.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Child's Pose with Reach</h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Kneel and sit the hips back toward the heels, arms stretched long in front on the floor.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Walk the hands forward and to each side, pressing the chest toward the floor to open the lats and shoulders.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">8–10 breaths — also a lovely lower-back decompression.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Shrugging the shoulders to the ears — keep them drawing back.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 05 ANKLES & CALVES -->
+    <div class="ruler"><span class="no">05</span><h2>Ankles · Calves</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🦶</span> Ankles &amp; Calves <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="wall none">
+          <h4>Knee-to-Wall Ankle Rock <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag wall">Wall</span><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Kneel/half-kneel facing a wall, front foot a few inches back from it, toes pointing forward.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Drive the knee forward over the toes to touch the wall, keeping the heel down. Edge the foot back to make it harder.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">8–10 slow rocks each side — key ankle range for running and squatting.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">The heel popping up, or the knee caving in — keep it tracking over the toes.</span></div>
+        </div>
+        <div class="ex" data-equip="wall">
+          <h4>Wall / Step Calf Stretch <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag wall">Wall / Step</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Hands on a wall, one foot back and straight (gastroc) — then repeat with a bent back knee (soleus).</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Press the back heel down and lean in. The bent-knee version reaches the deeper, lower calf.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5–8 breaths each variation, each side.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">The back foot turning out — keep the toes pointing straight ahead.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Ankle CARs (controlled circles) <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Seated or standing, lift one foot slightly off the floor.</span></div>
+          <div class="line-item"><span class="lab">Open</span><span class="txt">Trace slow, full circles with the foot, pointing and flexing through every edge of the range.</span></div>
+          <div class="line-item hold"><span class="lab">Hold</span><span class="txt">5 circles each direction — great pre-run ankle prep.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Moving the whole shin — isolate it to the ankle joint.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 06 FOAM ROLLING & PRESSURE POINTS -->
+    <div class="ruler"><span class="no">06</span><h2>Roll · Release</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🧴</span> Foam Rolling &amp; Pressure Points <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="roller">
+          <h4>Quad Roll <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag roller">Roller</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Face down, roller under the front of one thigh, forearms supporting you in a plank.</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Roll slowly from above the knee to the hip; pause and breathe on tender spots, slightly bend/straighten the knee to floss.</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">30–60s each leg.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Rolling fast and bouncy — slow pressure does the work.</span></div>
+        </div>
+        <div class="ex" data-equip="roller">
+          <h4>TFL / Side-Hip Roll <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag roller">Roller</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">On your side, roller just below the hip bone on the meaty front-side of the hip (the TFL).</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Work this small area slowly — it often refers tightness down the IT band, so target the source here rather than grinding the band itself.</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">30–45s each side.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Hammering the bony outer thigh/IT band directly — ease off if it's sharp.</span></div>
+        </div>
+        <div class="ex" data-equip="ball">
+          <h4>Glute / Piriformis Ball <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag ball">Ball</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Sit on a massage/lacrosse ball, that ankle crossed over the opposite knee to open the glute.</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Hunt for the tender knot, then rest on it and breathe slowly until it softens (30s+).</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">45–60s each side — gold for runners' deep-hip tightness.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Numbness/tingling down the leg — you're on the nerve; shift off it.</span></div>
+        </div>
+        <div class="ex" data-equip="roller">
+          <h4>Calf Roll <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag roller">Roller</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Seated, one calf on the roller, the other foot crossed on top for extra pressure, hands lifting the hips.</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Roll ankle-to-knee slowly, and rotate the leg in and out to reach the inner and outer calf.</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">30–60s each leg.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Holding your breath — exhale into the tender spots.</span></div>
+        </div>
+        <div class="ex" data-equip="roller">
+          <h4>T-Spine Extension over Roller</h4>
+          <div class="tags"><span class="tag roller">Roller</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Roller across the upper back, knees bent, hands supporting the head, hips low.</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Gently arch back over the roller, then inch it up a little and repeat — opens a hunched upper back.</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">3–5 gentle extensions at a couple of levels.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Cranking the lower back — keep the movement in the upper/mid back only.</span></div>
+        </div>
+        <div class="ex" data-equip="ball">
+          <h4>Foot / Arch Ball Release <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag ball">Ball</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Stand or sit, place a small firm ball under the arch of a bare foot.</span></div>
+          <div class="line-item"><span class="lab">Roll</span><span class="txt">Roll heel-to-toe with gentle pressure, pausing on tight spots. Eases the plantar fascia and the whole posterior chain.</span></div>
+          <div class="line-item hold"><span class="lab">Time</span><span class="txt">30–60s each foot — especially good after long runs.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Too much pressure on an already-sore plantar fascia; keep it gentle.</span></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 07 FLOWS -->
+    <div class="ruler"><span class="no">07</span><h2>Quick Flows</h2><span class="line"></span></div>
+    <details class="group">
+      <summary><span class="ic">🌊</span> Quick Flows <span class="count"></span><span class="chev">›</span></summary>
+      <div class="gbody">
+        <div class="ex" data-equip="none">
+          <h4>World's Greatest Stretch <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Step into a deep forward lunge, both hands framing the front foot.</span></div>
+          <div class="line-item"><span class="lab">Flow</span><span class="txt">Drop the back knee &amp; sink the hips → rotate the inside arm up to the ceiling (open the chest) → place it down and straighten the front leg to fold over it. Step back, switch sides.</span></div>
+          <div class="line-item hold"><span class="lab">Reps</span><span class="txt">3–5 per side — the single best full-body warm-up before a run or lift.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Rushing the rotation; pause and breathe at the open position.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Sun Salutation (gentle) <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Stand tall at the front of the mat, feet together, breath steady.</span></div>
+          <div class="line-item"><span class="lab">Flow</span><span class="txt">Inhale arms up → exhale fold → inhale half-lift → step/float back to plank → lower → cobra → downward dog (5 breaths) → step forward → rise. Link each move to a breath.</span></div>
+          <div class="line-item hold"><span class="lab">Reps</span><span class="txt">3–5 rounds to build heat and mobilise head-to-toe.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Holding the breath — the breath leads, the body follows.</span></div>
+        </div>
+        <div class="ex" data-equip="none">
+          <h4>Hip Opener Flow <span class="run">🏃</span></h4>
+          <div class="tags"><span class="tag none">No kit</span></div>
+          <div class="line-item"><span class="lab">Set up</span><span class="txt">Start in a deep squat (malasana).</span></div>
+          <div class="line-item"><span class="lab">Flow</span><span class="txt">Squat → hands down, straighten legs into a forward fold → step one foot back to a low lunge → rotate open → return → switch. Cycle slowly.</span></div>
+          <div class="line-item hold"><span class="lab">Reps</span><span class="txt">3–4 slow rounds — frees the hips after sitting or running.</span></div>
+          <div class="line-item watch"><span class="lab">Watch</span><span class="txt">Forcing depth — let the range grow over the rounds.</span></div>
+        </div>
+      </div>
+    </details>
+
+  </div>
+
+  <footer>
+    <b>General mobility guidance — not medical advice.</b><br>
+    Stretch to a "good" tension, never sharp pain.<br>
+    <a href="gym-exercises.html">→ Back to the Train page</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var buttons = document.querySelectorAll('#filter button');
+  var groups = document.querySelectorAll('#groups .group');
+  function refresh(){
+    groups.forEach(function(g){
+      var visible = 0;
+      g.querySelectorAll('.ex').forEach(function(e){ if(!e.classList.contains('hidden')) visible++; });
+      var c = g.querySelector('.count'); if(c) c.textContent = visible;
+      g.style.display = visible===0 ? 'none' : '';
+      var prev = g.previousElementSibling;
+      if(prev && prev.classList.contains('ruler')) prev.style.display = visible===0 ? 'none' : '';
+    });
+  }
+  function apply(f){
+    document.querySelectorAll('.ex').forEach(function(e){
+      var equip = (e.getAttribute('data-equip')||'').split(/\s+/);
+      e.classList.toggle('hidden', !(f==='all' || equip.indexOf(f)!==-1));
+    });
+    refresh();
+  }
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      buttons.forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      apply(b.getAttribute('data-f'));
+    });
+  });
+  groups.forEach(function(g,i){ g.style.animationDelay = (i*55)+'ms'; });
+  apply('all');
+})();
+</script>
+</body>
+</html>
